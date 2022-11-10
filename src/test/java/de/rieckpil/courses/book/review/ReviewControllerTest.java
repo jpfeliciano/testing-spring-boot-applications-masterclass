@@ -149,4 +149,20 @@ class ReviewControllerTest {
 
     verify(reviewService).deleteReview("42", 3L);
   }
+
+  @Test
+  void shouldGetAReviewById() throws Exception {
+    ObjectNode statistic = objectMapper.createObjectNode();
+    statistic.put("bookId", 1);
+    statistic.put("isbn", "42");
+    statistic.put("avg", 89.3);
+    statistic.put("ratings", 2);
+
+    when(reviewService.getReviewById(anyString(), anyLong())).thenReturn(statistic);
+
+    this.mockMvc
+      .perform(get("/api/books/{isbn}/reviews/{reviewId}", 42, 3)
+        .with(jwt()))
+      .andExpect(status().isOk());
+  }
 }
