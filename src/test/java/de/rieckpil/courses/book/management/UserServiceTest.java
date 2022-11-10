@@ -11,7 +11,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,7 +39,8 @@ class UserServiceTest {
 
     System.out.println(LocalDateTime.now());
 
-    try (MockedStatic<LocalDateTime> mockedLocalDateTime = Mockito.mockStatic(LocalDateTime.class)) {
+    try (MockedStatic<LocalDateTime> mockedLocalDateTime = Mockito.mockStatic(
+      LocalDateTime.class)) {
       mockedLocalDateTime.when(LocalDateTime::now).thenReturn(defaultLocalDateTime);
 
       System.out.println(LocalDateTime.now());
@@ -54,17 +57,15 @@ class UserServiceTest {
   }
 
   @Test
-  void shouldFindUser() {
-
-    User myUser = new User();
-    myUser.setEmail("deyvidm18@gmail.com");
-    myUser.setId(1L);
-    myUser.setName("Deyvid");
-
-    when(userRepository.findByNameAndEmail("Deyvid", "deyvidm18@gmail.com")).thenReturn(myUser);
-    User result = cut.getOrCreateUser("Deyvid", "deyvidm18@gmail.com");
-    assertEquals(myUser.getEmail(), result.getEmail());
-    assertEquals(myUser.getName(), result.getName());
-    assertEquals(myUser.getId(), result.getId());
+  void shouldReturnANewUserFromParameters() {
+    User user = new User();
+    user.setName("Juan F");
+    user.setEmail("jp.feliciano10@uniandes.edu.co");
+    user.setCreatedAt(LocalDateTime.now());
+    when(userRepository.findByNameAndEmail(anyString(), anyString())).thenReturn(null);
+    when(userRepository.save(any(User.class))).thenReturn(user);
+    User juanF = cut.getOrCreateUser(user.getName(), user.getEmail());
+    assertNotNull(juanF);
+    assertEquals(user.getEmail(), juanF.getEmail());
   }
 }
