@@ -13,6 +13,8 @@ import org.springframework.web.client.RestTemplate;
 import java.time.Duration;
 import java.util.Collections;
 
+import javax.swing.text.AbstractDocument.Content;
+
 @Component
 public class OpenLibraryRestTemplateApiClient {
 
@@ -40,9 +42,11 @@ public class OpenLibraryRestTemplateApiClient {
             HttpMethod.GET, entity, ObjectNode.class, "ISBN:" + isbn)
         .getBody();
 
-    JsonNode content = result != null ? result.get("ISBN:" + isbn) : null;
-
-    return convertToBook(isbn, content);
+    if (result != null) {
+      JsonNode content = result.get("ISBN:" + isbn);
+      return convertToBook(isbn, content);
+    }
+    return new Book();
   }
 
   private Book convertToBook(String isbn, JsonNode content) {
