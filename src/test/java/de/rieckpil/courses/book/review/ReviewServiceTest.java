@@ -1,9 +1,17 @@
 package de.rieckpil.courses.book.review;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.rieckpil.courses.book.management.Book;
 import de.rieckpil.courses.book.management.BookRepository;
 import de.rieckpil.courses.book.management.User;
 import de.rieckpil.courses.book.management.UserService;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +19,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -37,6 +46,13 @@ class ReviewServiceTest {
   private static final String USERNAME = "duke";
   private static final String ISBN = "42";
 
+  private ObjectMapper objectMapper;
+
+  @BeforeEach
+  void beforeEach() {
+    this.objectMapper = new ObjectMapper();
+  }
+
   @Test
   void shouldNotBeNull() {
     assertNotNull(reviewRepository);
@@ -61,7 +77,8 @@ class ReviewServiceTest {
     BookReviewRequest bookReviewRequest =
       new BookReviewRequest("Title", "BADCONTENT!", 1);
     when(bookRepository.findByIsbn(ISBN)).thenReturn(new Book());
-    when(mockedReviewVerifier.doesMeetQualityStandards(bookReviewRequest.getReviewContent())).thenReturn(false);
+    when(mockedReviewVerifier.doesMeetQualityStandards(
+      bookReviewRequest.getReviewContent())).thenReturn(false);
 
     // act - when
     assertThrows(BadReviewQualityException.class,
@@ -78,7 +95,8 @@ class ReviewServiceTest {
       new BookReviewRequest("Title", "GOOD CONTENT!", 1);
 
     when(bookRepository.findByIsbn(ISBN)).thenReturn(new Book());
-    when(mockedReviewVerifier.doesMeetQualityStandards(bookReviewRequest.getReviewContent())).thenReturn(true);
+    when(mockedReviewVerifier.doesMeetQualityStandards(
+      bookReviewRequest.getReviewContent())).thenReturn(true);
     when(userService.getOrCreateUser(USERNAME, EMAIL)).thenReturn(new User());
     when(reviewRepository.save(any(Review.class))).thenAnswer(invocation -> {
       Review reviewToSave = invocation.getArgument(0);
@@ -90,5 +108,57 @@ class ReviewServiceTest {
 
     Long expected = 42L;
     assertEquals(expected, result);
+  }
+
+  @Test
+  void shouldGetAllReviewsByRating() {
+    List<Review> reviewList = mockReviews();
+    when(reviewRepository.findTop5ByOrderByRatingDescCreatedAtDesc()).thenReturn(reviewList);
+    ArrayNode allReviews = cut.getAllReviews(reviewList.size(), "rating");
+    assertNotNull(allReviews);
+    assertEquals(2, allReviews.size());
+  }
+
+  @Test
+  void shouldGetAllReviewsByCreatedAt() {
+    List<Review> reviewList = mockReviews();
+    when(reviewRepository.findAllByOrderByCreatedAtDesc(any(PageRequest.class))).thenReturn(
+      reviewList);
+    ArrayNode allReviews = cut.getAllReviews(reviewList.size(), "created");
+    assertNotNull(allReviews);
+    assertEquals(2, allReviews.size());
+  }
+
+  @Test
+  void shouldDeleteAReview() {
+    doNothing().when(reviewRepository).deleteByIdAndBookIsbn(anyLong(), anyString());
+    cut.deleteReview("1", 1L);
+    verify(reviewRepository, times(1)).deleteByIdAndBookIsbn(anyLong(), anyString());
+  }
+
+  @Test
+  void shouldGetAReviewById() {
+    List<Review> reviewList = mockReviews();
+    when(reviewRepository.findByIdAndBookIsbn(anyLong(), anyString())).thenReturn(
+      Optional.of(reviewList.get(0)));
+    ObjectNode review = cut.getReviewById("1", 1L);
+    assertNotNull(review);
+    assertEquals("Content 0", review.get("reviewContent").asText());
+  }
+
+  private List<Review> mockReviews() {
+    List<Review> reviewList = new ArrayList<>();
+    for (int i = 0; i < 2; i++) {
+      Review review = new Review();
+      review.setId((long) i);
+      review.setContent("Content " + i);
+      review.setRating(i);
+      review.setTitle("Title " + i);
+      review.setBook(new Book());
+      review.setUser(new User());
+      review.setCreatedAt(LocalDateTime.now());
+      reviewList.add(review);
+    }
+    return reviewList;
   }
 }
