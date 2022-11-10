@@ -20,10 +20,10 @@ public class OpenLibraryRestTemplateApiClient {
 
   public OpenLibraryRestTemplateApiClient(RestTemplateBuilder restTemplateBuilder) {
     this.restTemplate = restTemplateBuilder
-      .rootUri("https://openlibrary.org")
-      .setConnectTimeout(Duration.ofSeconds(2))
-      .setReadTimeout(Duration.ofSeconds(2))
-      .build();
+        .rootUri("https://openlibrary.org")
+        .setConnectTimeout(Duration.ofSeconds(2))
+        .setReadTimeout(Duration.ofSeconds(2))
+        .build();
   }
 
   public Book fetchMetadataForBook(String isbn) {
@@ -36,10 +36,11 @@ public class OpenLibraryRestTemplateApiClient {
     HttpEntity<Void> entity = new HttpEntity<>(headers);
 
     ObjectNode result = restTemplate
-      .exchange("/api/books?jscmd=data&format=json&bibkeys={isbn}",
-        HttpMethod.GET, entity, ObjectNode.class, "ISBN:" + isbn).getBody();
+        .exchange("/api/books?jscmd=data&format=json&bibkeys={isbn}",
+            HttpMethod.GET, entity, ObjectNode.class, "ISBN:" + isbn)
+        .getBody();
 
-    JsonNode content = result.get("ISBN:" + isbn);
+    JsonNode content = result != null ? result.get("ISBN:" + isbn) : null;
 
     return convertToBook(isbn, content);
   }
