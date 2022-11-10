@@ -52,4 +52,19 @@ class UserServiceTest {
 
     System.out.println(LocalDateTime.now());
   }
+
+  @Test
+  void shouldFindUser() {
+
+    User myUser = new User();
+    myUser.setEmail("deyvidm18@gmail.com");
+    myUser.setId(1L);
+    myUser.setName("Deyvid");
+
+    when(userRepository.findByNameAndEmail("Deyvid", "deyvidm18@gmail.com")).thenReturn(myUser);
+    User result = cut.getOrCreateUser("Deyvid", "deyvidm18@gmail.com");
+    assertEquals(myUser.getEmail(), result.getEmail());
+    assertEquals(myUser.getName(), result.getName());
+    assertEquals(myUser.getId(), result.getId());
+  }
 }
