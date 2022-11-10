@@ -7,10 +7,13 @@ import de.rieckpil.courses.book.management.Book;
 import de.rieckpil.courses.book.management.BookRepository;
 import de.rieckpil.courses.book.management.User;
 import de.rieckpil.courses.book.management.UserService;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -144,6 +147,42 @@ class ReviewServiceTest {
     ObjectNode review = cut.getReviewById("1", 1L);
     assertNotNull(review);
     assertEquals("Content 0", review.get("reviewContent").asText());
+  }
+
+  @Test
+  void shouldGetReviewStatistics() {
+    ReviewStatistic reviewStatistic = getReviewStatistic();
+    List<ReviewStatistic> reviewStatisticList = new ArrayList<>();
+    reviewStatisticList.add(reviewStatistic);
+    when(reviewRepository.getReviewStatistics()).thenReturn(reviewStatisticList);
+    ArrayNode reviewStatistics = cut.getReviewStatistics();
+    assertEquals(1, reviewStatistics.size());
+    assertEquals(reviewStatistic.getId(), reviewStatistics.get(0).get("bookId").asLong());
+  }
+
+  @NotNull
+  private ReviewStatistic getReviewStatistic() {
+    return new ReviewStatistic() {
+      @Override
+      public Long getId() {
+        return 1L;
+      }
+
+      @Override
+      public Long getRatings() {
+        return 4L;
+      }
+
+      @Override
+      public String getIsbn() {
+        return UUID.randomUUID().toString();
+      }
+
+      @Override
+      public BigDecimal getAvg() {
+        return new BigDecimal("5.0");
+      }
+    };
   }
 
   private List<Review> mockReviews() {
