@@ -29,11 +29,11 @@ class ReviewVerifierTest {
 
   @Test
   void shouldFailWhenReviewContainsSwearWord() {
-    String review = "This book is shit";
+    String review = "What a bad book guys, this book is absolutely a shit";
     System.out.println("Testing a review");
 
     boolean result = reviewVerifier.doesMeetQualityStandards(review);
-    assertFalse(result, "ReviewVerifier did not detect swear word");
+    assertFalse(result, "ReviewVerifier did detect a swear word");
   }
 
   @Test
@@ -80,10 +80,12 @@ class ReviewVerifierTest {
     boolean result = reviewVerifier.doesMeetQualityStandards(review);
     // assertTrue(result, "ReviewVerifier did not pass a good review"); JUnit 5
 
-    MatcherAssert.assertThat("ReviewVerifier did not pass a good review", result, Matchers.equalTo(true));
+    MatcherAssert.assertThat("ReviewVerifier did not pass a good review", result,
+      Matchers.equalTo(true));
     MatcherAssert.assertThat("Lorem ipsum", Matchers.endsWith("ipsum"));
     MatcherAssert.assertThat(List.of(1, 2, 3, 4, 5), Matchers.hasSize(5));
-    MatcherAssert.assertThat(List.of(1, 2, 3, 4, 5), Matchers.anyOf(Matchers.hasSize(5), Matchers.emptyIterable()));
+    MatcherAssert.assertThat(List.of(1, 2, 3, 4, 5),
+      Matchers.anyOf(Matchers.hasSize(5), Matchers.emptyIterable()));
   }
 
   @Test
